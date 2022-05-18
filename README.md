@@ -238,3 +238,54 @@ const {
   error: heroesLoadingError,
 } = useQuery("superheroes", fetchSuperHeroes);
 ```
+
+## Dynamic Parallel Queries
+
+몇 가지 종류의 서로 다른 요청이 필요할지 사전에 안다면 위에서 처럼 정해진 횟수의 useQuery 훅을 실행해주면 된다.
+
+하지만, 그 종류의 개수가 dynamic 한 경우에는 어떻게 해야할까??
+
+이 때 사용할 수 있는 훅이 `useQueries` 훅이다
+
+```javascript
+const queryResults = useQueries(
+  heroIds.map((id) => {
+    return {
+      queryKey: ["superhero", id],
+      queryFn: () => fetchSuperHero(id),
+    };
+  })
+);
+```
+
+그러면 저 queryResults에는 무엇이 들어있는가?
+== useQueries 훅이 반환하는 값이 무엇인가?
+
+전달된 값의 개수만큼의 useQuery hook의 배열
+
+즉 아래 같은 형태로 값에 접근할 수 있게 된다
+
+```javascript
+const { data, isLoading } = queryResults[0];
+```
+
+parallel query는 병렬적인 호출을 통해서 concurrency를 최대한 유지하는 것이 목표일 때 사용하는 방법이다.
+
+하지만, 어떨 때는 query 1이 실행된 다음에 query2를 실행하고 싶은 경우도 있다.
+
+## Dependent Queries
+
+특정 쿼리가 다른 쿼리에 기반해서 이루어져야 할때는 어떻게 해야할까?
+
+이것 또한, 뭐 대단한 로직으로 실행하는 것이 아니라 말 그대로 선행조건을 충족시켰을 때 다음 로직이 실행되도록 해주면 된다.
+
+첫 번째 쿼리가 실행되고, 성공적으로 처리 되었을 때 그 reponse 에서 다음 쿼리에 필요한 데이터를 받아서 담고 있을 변수가 있다고 생각해보자.
+
+그러면 해당 변수는 원래는 undefined(nullish)한 값이겠지만, 첫 번째 쿼리가 잘 실행될 경우 특정 데이터가 담긴다(truthy)
+
+두 번째 쿼리의 enabled 속성을 활용해서, 이 첫 번째 쿼리의 결과값으로 인해 해당 변수에 값이 truthy 일때
+true 가 되도록 하면, 첫 번째 쿼리값이 받아져야만 enabled 가 true 가 되어서 두 번째 쿼리가 실행된다.
+
+여기서 `!!(double negation)` 개념 알고 가자.
+
+

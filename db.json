@@ -54,5 +54,17 @@
       "id": 3,
       "name": "Rachel Green"
     }
+  ],
+  "users": [
+    {
+      "id": "maji93@naver.com",
+      "channelId": "codeEvolution"
+    }
+  ],
+  "channels": [
+    {
+      "id": "codeEvolution",
+      "courses": ["react", "vue", "angular"]
+    }
   ]
 }
