@@ -105,4 +105,70 @@ stale/fresh 여부와 `always` 값을 받아 동작하는 방식은 refetchOnMou
 
 ## polling?
 
-`polling` means fetching data on a regular basiss
+`polling` means fetching data on a regular basis
+
+#### refetchInterval
+
+by default: false
+
+milliseconds 단위로 설정해줄 수 있다.
+
+그리고 설정된 시간 간격으로 데이터를 해당 쿼리로 받아오게 된다.
+
+거래소와 같이 초단위로 많은 데이터의 변경이 이루어지는 경우 등에서 이런 기능이 필요할 것이다.
+
+2초로 설정하면 2초 마다 fetching 이 true가 되는 것을 확인할 수 있다.
+
+react query에서 polling 은 해당 탭 window가 focus를 잃으면 일시 정지 된다...라고 하는데 왜 나의 경우에는 focus가 없는 상태에도 정보가 계속 refetch 되고 있지
+-> refetchIntervalInBackground 의 경우, 해당 컴포넌트가 일단 mount되어 있는 상태에서 동작한다. 또한 해당 창이 윈도우 화면에서 유저에게 보여지고 있는 상태인 경우에는 focus가 있다고 간주된다. 만약에 다른 탭으로 이동해서 해당 탭이 보이지 않는 경우에는 refetchIntervalInBackground이 true인 경우에만 데이터 refetching 이 이루어짐
+
+## useQuery on Click
+
+지금까지는 컴포넌트가 mount 되거나 window에 focus 가 잡힐 때 마다 자동으로 get query(request)가 전송되었다.
+
+하지만 컴포넌트가 마운트 될 때가 아니라, 유저의 특정 입력에 따라서 데이터를 불러와야 하는 경우도 굉장히 많다.
+
+버튼을 클릭했을 때, fetching이 이루어지도록 해보자
+
+이를 위해서는 두 단계가 필요하다..
+
+- useQuery에게 'mount되어도 request fire하지마'라고 알려줘야함({enabled: false}라는 설정을 전달해서 해결)
+  -> 이렇게 하면 페이지에 진입(component 가 mounted)해도 api call(query)가 실행되지 않음
+- 버튼 클릭시 불러오는 로직 작성
+  -> useQuery 훅이 반환하는 data, isError 등 값들 중에는 `refetch`라는 함수도 있다. 클릭시에 이 함수가 실행되도록 해주면 됨
+
+`refetch` 함수를 통해서 특정 조건 충족시에 데이터를 fetch하는 경우에는, isLoading은 false 이지만 isFetching 이 true 로 설정되는 경우에 해당된다. 즉 로딩 화면을 보여주려면 isFetching 값을 활용하는 것을 고려해야 한다.
+
+## Success and Error Callbacks
+
+Query 결과에 따라서 side effect를 실행하고 싶은 경우가 있다. 예를 들어, 모달을 Open 한다던지, 다른 source 로 네비게이션 한다던지, toast notification을 한다던지 하는....
+
+이런 성공/실패에 따른 sideEffect를 실행하기 위해서는 config 객체에 onSuccess/onError field에 해당 경우에 따라 실행하고 싶은 함수를 전달하면 된다.
+
+여기서 react query 가 또 신경쓴 좋은 부분 중 하나는..
+
+**Success 일 경우 data를, Error인 경우에는 error를 해당 콜백함수에 전달해준다는 것**
+
+인자로 전달된 data, error등을 활용해서 side effect를 실행할 수있다는 건 매우 강력한 기능이다.. 진짜로... 이거 rq 없이 하려면 도대체 얼마나 또 코드를 복잡하게 짜야할지 감도 안오네 ㄷㄷ
+
+## Data Transformation
+
+select 필드를 활용해서 넘겨 받는 데이터를 원하는 대로 가공해서 data 변수로 넘겨받는 형태로 작업할 수 있다.
+
+select 필드에 전달된 콜백 함수에 data 를 인수로 전달하고, 이 인수를 안에서 처리해서 원하는 데이터 형태를 return 하면 return 된 데이터가 data 변수에 새롭게 담아진다.
+
+## Custom Query Hook
+
+fetch(get) data 하기 위해서 사용되는 것이 useQuery 훅.
+
+useQuery 훅은 세 가지 인수를 받음
+
+- unique key
+- fetch 함수
+- useQuery 훅의 동작을 관리하는 config 객체
+
+그런데, 특정 useQuery 훅을 재사용하려면 어떻게 해야할까? 물론 코드를 복사해서 다시 작성할 수있겠지만, 이것은 best practice라고 보기 어렵다.
+
+custom query hook 로직을 별도의 파일로 분리해서 모듈화해서 가져다 쓰는 방식을 활용하자.
+
+## Query by id

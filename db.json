@@ -14,6 +14,30 @@
       "id": 3,
       "name": "Wonder Woman",
       "alterEgo": "Princess Diana"
+    },
+    {
+      "id": 4,
+      "name": "Silver Surfer",
+      "alterEgo": "???"
+    }
+  ],
+
+  "villains": [
+    {
+      "id": 1,
+      "name": "Joker"
+    },
+    {
+      "id": 2,
+      "name": "Crypton"
+    },
+    {
+      "id": 3,
+      "name": "원더우먼 주적"
+    },
+    {
+      "id": 4,
+      "name": "실버서퍼 주적"
     }
   ]
 }
