@@ -172,3 +172,69 @@ useQuery 훅은 세 가지 인수를 받음
 custom query hook 로직을 별도의 파일로 분리해서 모듈화해서 가져다 쓰는 방식을 활용하자.
 
 ## Query by id
+
+react query는 자동으로 heroId를 fetch 함수에 넣어준다.
+
+근데 자동으로 넣어주는 것이 뭐임? 무슨 값을 넣어도 일단 전달해준다는 소리임?
+
+그건 바로...
+
+```javascript
+const fetchHeroById = (heroId) => {
+  return axios.get(`http://localhost:4000/superheroes/${heroId}`);
+};
+
+export const useSuperHeroData = (heroId) => {
+  return useQuery(["super-hero", heroId], () => {
+    return fetchHeroById(heroId);
+  });
+};
+```
+
+원리 heroId값을 전달해주고, 이를 다시 fetch함수에 전달해서 해당 값을 return 받는 식으로 코드를 짰다. 하지만, react query는 useQuery 함수 실행 시 두 번째로 전달받은 fetch에 default 로 여러 값을 전달하도록 되어 있다.
+
+그 중에서, `queryKey` 라는 값은 useQuery 함수에 첫 번째로 전달한 유니크한 키 값 혹은 키 값 배열을 담고 있다. 즉, 위 코드의 경우...
+
+```javascript
+const fetchHeroById = ({ queryKey }) => {
+  const heroId = queryKey[1];
+  return axios.get(`http://localhost:4000/superheroes/${heroId}`);
+};
+
+export const useSuperHeroData = (heroId) => {
+  return useQuery(["super-hero", heroId], fetchHeroById);
+};
+```
+
+이렇게 짤 수 있다는 뜻이 된다.
+
+즉 id값으로 useQuery를 통한 data fetching 작업을 하기 위해서는...
+
+id 값을 useQuery 혹은 useQuery를 활용하는 custom hook 에 전달한다.
+
+해당 id 값을 useQuery 함수의 첫 번째 인자로 전달해준다.
+
+첫 번째 인자로 전달된 값은 두 번째 인자인 fetch 콜백함수에 자동으로 전달된다. 이를 활용하려면 전달되는 많은 값들 중에서 `queryKey`라는 값을 활용하면 된다. 이는 배열이므로, 배열의 몇 번째 인지 정해주면 되는 것
+
+## Parallel Queries
+
+때로는 하나의 컴포넌트에서 여러 개의 API 로부터 데이터를 불러오는 경우가 있다.
+
+어떻게 해야될까? 뭔가 신박하게 막 두개를 묶어서 해결해주는 기능이 있을까?
+
+우리는 종종 이런 라이브러리를 활용할 때, 지나치게 복잡하게 생각하는 경우가 많다.
+
+코드 짤때 너무 복잡하게 생각하지 말자.
+
+서로 다른 두 개의 API 로부터 데이터를 불러온다 치면, 각각의 경우에 대해서 useQuery를 한 번 씩, 총 두 번 써주면 되는 것이다. as simple as that.
+
+근데 그러면 data, isLoading 같은 변수이름 겹치지 않나?
+-> alias 를 활용해서 선언하면 되지롱 아래처럼 말이야
+
+```javascript
+const {
+  data: superHeroes,
+  isLoading: loadingHeroes,
+  error: heroesLoadingError,
+} = useQuery("superheroes", fetchSuperHeroes);
+```
