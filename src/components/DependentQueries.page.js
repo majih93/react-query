@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useState } from "react";
 import { useQuery } from "react-query";
 
 const fetchUserByEmail = (email) => {
@@ -22,5 +23,14 @@ export const DependentQueriesPage = ({ email }) => {
     enabled: Boolean(channelId),
   });
 
-  return <div>DependentQueries.page</div>;
+  const [hello, useHello] = useState(0);
+
+  return (
+    <div>
+      <ul>
+        <undefined />
+        <li>hello</li>
+      </ul>
+    </div>
+  );
 };
